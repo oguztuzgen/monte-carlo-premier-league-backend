@@ -1,12 +1,13 @@
 package com.tuzgen.montecarlopremierleague.controllers;
 
+import com.tuzgen.montecarlopremierleague.models.Team;
 import com.tuzgen.montecarlopremierleague.services.LeagueService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
 
 @RequestMapping("/api/v1/simulation")
 @RestController
@@ -20,13 +21,21 @@ public class SimulationController {
 
     @PostMapping("/single/{leagueId}")
     public ResponseEntity<String> simulateSingleWeekInLeague(@PathVariable Long leagueId) {
-        try {
-            leagueService.simulateCurrentWeekByLeagueId(leagueId);
+        if (leagueService.simulateCurrentWeekByLeagueId(leagueId))
             return new ResponseEntity<>(HttpStatus.OK);
-        } catch (Exception e) {
+        else
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-
     }
 
+    @PostMapping("/all/{leagueId}")
+    public ResponseEntity<List<Team>> simulateEntireSeason(@PathVariable Long leagueId) {
+        while (leagueService.simulateCurrentWeekByLeagueId(leagueId));
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+//    @GetMapping("/monteCarlo/{leagueId}")
+//    public ResponseEntity<Map<String, Integer>> calculateMonteCarlo(@PathVariable Long leagueId) {
+//        return new ResponseEntity<>(leagueService.monteCarloSimulation(leagueId, 2), HttpStatus.OK);
+//
+//    }
 }

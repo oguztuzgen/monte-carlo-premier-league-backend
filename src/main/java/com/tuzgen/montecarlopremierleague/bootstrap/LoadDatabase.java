@@ -35,9 +35,8 @@ public class LoadDatabase {
         teamRepository.saveAll(teams);
 
         League league = leagueService.createWithTeams(teams);
-        System.out.println(league);
-        leagueService.simulateCurrentWeek(league);
-        System.out.println(league);
+
+//        leagueService.monteCarloSimulation(league.getId(), 2);
 
         System.out.println("Finished database bootstrap");
 

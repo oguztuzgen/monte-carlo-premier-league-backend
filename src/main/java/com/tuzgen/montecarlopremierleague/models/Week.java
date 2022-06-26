@@ -19,6 +19,13 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Week extends BaseEntity {
+    public Week(Week w) {
+        this.matches = new ArrayList<>();
+        for (Match m : w.matches) {
+            this.matches.add(new Match(m));
+        }
+    }
+
     @Override
     public String toString() {
         StringBuilder str = new StringBuilder();

@@ -8,7 +8,6 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "teams")
 
-@ToString
 @Getter
 @Setter
 @NoArgsConstructor
@@ -25,6 +24,17 @@ public class Team extends BaseEntity {
 
     private Integer goalsFor = 0;
     private Integer goalsAgainst = 0;
+
+    public Team(Team t) {
+        this.name = t.name;
+        this.logo_url = t.logo_url;
+        this.strength = t.strength;
+        this.gamesWon = t.gamesWon;
+        this.gamesLost = t.gamesLost;
+        this.gamesDrawn = t.gamesDrawn;
+        this.goalsFor = t.goalsFor;
+        this.goalsAgainst =t.goalsAgainst;
+    }
 
     public Integer getPoints() {
         return gamesWon*3+gamesDrawn;
@@ -61,6 +71,15 @@ public class Team extends BaseEntity {
                  + goalsFor + " "
                  + goalsAgainst + "\n";
 
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        Team team = (Team) o;
+        return name.equals(team.name);
     }
 
     public Team(String name, String logo_url) {

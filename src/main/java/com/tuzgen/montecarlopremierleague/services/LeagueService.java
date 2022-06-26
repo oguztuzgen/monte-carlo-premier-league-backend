@@ -5,16 +5,19 @@ import com.tuzgen.montecarlopremierleague.models.Team;
 import com.tuzgen.montecarlopremierleague.models.Week;
 
 import java.util.List;
+import java.util.Map;
 
 public interface LeagueService {
     List<Week> generateSchedule(List<Team> teams) throws CloneNotSupportedException;
 
     League createWithTeams(List<Team> teams);
 
-    void simulateCurrentWeek(League league);
+    boolean simulateCurrentWeek(League league);
 
-    void simulateCurrentWeekByLeagueId(Long id);
+    boolean simulateCurrentWeekByLeagueId(Long id);
 
     void simulateAll(League league);
     void simulateAllByLeagueId(Long id);
+
+    Map<String, Integer> monteCarloSimulation(Long leagueId, Integer epochs);
 }

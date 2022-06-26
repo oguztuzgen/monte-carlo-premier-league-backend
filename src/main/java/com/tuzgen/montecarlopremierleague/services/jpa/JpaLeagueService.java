@@ -6,6 +6,7 @@ import com.tuzgen.montecarlopremierleague.models.Team;
 import com.tuzgen.montecarlopremierleague.models.Week;
 import com.tuzgen.montecarlopremierleague.repositories.LeagueRepository;
 import com.tuzgen.montecarlopremierleague.repositories.MatchRepository;
+import com.tuzgen.montecarlopremierleague.repositories.TeamRepository;
 import com.tuzgen.montecarlopremierleague.repositories.WeekRepository;
 import com.tuzgen.montecarlopremierleague.services.LeagueService;
 import com.tuzgen.montecarlopremierleague.services.MatchService;
@@ -20,12 +21,14 @@ public class JpaLeagueService implements LeagueService {
     private final LeagueRepository leagueRepository;
     private final WeekRepository weekRepository;
     private final MatchService matchService;
+    private final TeamRepository teamRepository;
 
-    public JpaLeagueService(MatchRepository matchRepository, LeagueRepository leagueRepository, WeekRepository weekRepository, MatchService matchService) {
+    public JpaLeagueService(MatchRepository matchRepository, LeagueRepository leagueRepository, WeekRepository weekRepository, MatchService matchService, TeamRepository teamRepository) {
         this.matchRepository = matchRepository;
         this.leagueRepository = leagueRepository;
         this.weekRepository = weekRepository;
         this.matchService = matchService;
+        this.teamRepository = teamRepository;
     }
 
     @Override
@@ -95,9 +98,9 @@ public class JpaLeagueService implements LeagueService {
     }
 
     @Override
-    public void simulateCurrentWeek(League league) {
-        if (league.getCurrentWeekNo() > league.getTeams().size() * 2) {
-            throw new RuntimeException("League has ended");
+    public boolean simulateCurrentWeek(League league) {
+        if (league.getIsLeagueFinished()) {
+            return false;
         }
         Week currentWeek = league.getCurrentWeek();
 
@@ -106,23 +109,55 @@ public class JpaLeagueService implements LeagueService {
         }
 
         System.out.println(currentWeek);
-        league.setCurrentWeekNo(league.getCurrentWeekNo()+1);
+        if (league.getCurrentWeekNo() == 5) {
+            league.setIsLeagueFinished(true);
+        } else {
+            league.setCurrentWeekNo(league.getCurrentWeekNo()+1);
+        }
+        leagueRepository.save(league);
+        System.out.println(league.getCurrentWeekNo());
+        return true;
     }
 
     @Override
-    public void simulateCurrentWeekByLeagueId(Long id) {
+    public boolean simulateCurrentWeekByLeagueId(Long id) {
         League league = leagueRepository.findById(id).orElseThrow(RuntimeException::new);
-        simulateCurrentWeek(league);
+        return simulateCurrentWeek(league);
     }
 
     @Override
     public void simulateAll(League league) {
-
+        for (Week week: league.getWeeks()) {
+            simulateCurrentWeek(league);
+        }
     }
 
     @Override
     public void simulateAllByLeagueId(Long id) {
+        League league = leagueRepository.findById(id).orElseThrow(RuntimeException::new);
+        simulateAll(league);
+    }
 
+    @Override
+    public Map<String, Integer> monteCarloSimulation(Long leagueId, Integer epochs) {
+        League league = leagueRepository.findById(leagueId).orElseThrow(RuntimeException::new);
+        Map<String, Integer> winCounts = new HashMap<>();
+
+        for (Team team: league.getTeams()) {
+            winCounts.put(team.getName(), 0);
+        }
+
+        for (int i = 0; i < epochs; i++) {
+            League l = new League(league);
+            teamRepository.saveAll(l.getTeams());
+            matchRepository.saveAll(getListOfMatchesFromSchedule(l.getWeeks()));
+            weekRepository.saveAll(l.getWeeks());
+            simulateAll(l);
+            Team winner = l.getFirstTeam();
+            winCounts.put(winner.getName(), winCounts.get(winner.getName())+1);
+        }
+
+        return winCounts;
     }
 
 
